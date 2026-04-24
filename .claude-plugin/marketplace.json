@@ -1,0 +1,26 @@
+{
+  "name": "product-dev-skills",
+  "owner": {
+    "name": "replghost"
+  },
+  "metadata": {
+    "description": "AI development workflow — automated issue-to-PR pipeline, PR review and merge, parallel teams.",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "product-dev-skills",
+      "description": "Hands-off development pipeline: issue-to-PR automation, batch issue processing, PR review and merge with dependency analysis, demanding code reviewer persona.",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/work-issue",
+        "./skills/work-issues",
+        "./skills/review-pr",
+        "./skills/review-prs",
+        "./skills/cleanup",
+        "./skills/testing-patterns"
+      ]
+    }
+  ]
+}
