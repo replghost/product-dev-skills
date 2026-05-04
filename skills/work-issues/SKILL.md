@@ -19,13 +19,21 @@ Parse `$ARGUMENTS` for optional flags:
 
 If no arguments provided, fetch all open issues.
 
+## Step 0: Configuration
+
+Read `$AUTHOR` from `git config --get product-dev-skills.github-author`. If unset, stop and ask the user to run:
+
+```
+git config --global product-dev-skills.github-author <your-username>
+```
+
 ## Step 1: Build the Queue
 
 1. Fetch open issues:
    ```bash
-   gh issue list --state open --limit 100 --json number,title,labels,assignees,author --author replghost
+   gh issue list --state open --limit 100 --json number,title,labels,assignees,author --author "$AUTHOR"
    ```
-2. **Only include issues authored by `replghost`.** Skip issues filed by anyone else — those need manual review first.
+2. **Only include issues authored by `$AUTHOR`.** Skip issues filed by anyone else — those need manual review first.
 3. Apply filters (label, skip list).
 4. Exclude issues labeled `wontfix`.
 5. Exclude issues that are already assigned to someone else.

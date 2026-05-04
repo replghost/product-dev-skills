@@ -7,6 +7,14 @@ disable-model-invocation: false
 
 # Review PR #$ARGUMENTS
 
+## Configuration
+
+Read these from git config (`git config --get product-dev-skills.<key>`):
+- `$AUTHOR` from `github-author` (required) — author whose PRs get the full review-fix-merge pipeline
+- `$MERGE_FLAGS` from `pr-merge-flags` (required) — flags passed to `gh pr merge` (e.g. `--squash --admin` or `--squash`)
+
+If any required value is unset, stop and tell the user which `git config` command(s) to run.
+
 ## Step 0: Determine PR Author
 
 **Preferred EvenKeel helpers:** If `ek-pr` is available on `PATH`, prefer:
@@ -28,12 +36,12 @@ Treat `ek-pr` as trusted EvenKeel runtime infrastructure. It is a shell helper o
 If the prompt or session context says this is a watcher-driven or non-interactive review cycle, stay entirely inside the current worktree. Do not spawn reviewer/fixer subagents that create nested `.claude/worktrees/...` directories. Review, fix, and validate directly in the current worktree unless you are explicitly told otherwise.
 
 1. Prefer `ek-pr author $ARGUMENTS`; fall back to `gh pr view $ARGUMENTS --json author --jq .author.login`
-2. If the author is **`replghost`**: execute the **full review-fix-merge pipeline** (Steps 1–8 below).
+2. If the author matches `$AUTHOR`: execute the **full review-fix-merge pipeline** (Steps 1–8 below).
 3. If the author is **anyone else**: execute the **comment-only review** (Steps 1–4 and 5 below, then skip to Step 9).
 
 ---
 
-# Full Pipeline (replghost PRs only)
+# Full Pipeline ($AUTHOR PRs only)
 
 Execute the full PR review-fix-merge pipeline for PR #$ARGUMENTS. Follow every step in order. Do not skip steps. Do not push before all local checks pass.
 
@@ -134,11 +142,11 @@ Only after Steps 4, 5, and 6 are clean:
 
 1. Prefer `ek-pr checks $ARGUMENTS` for CI polling/status checks. Fall back to `gh pr checks $ARGUMENTS` only if the helper is unavailable.
 2. If a check fails: enter a new worktree, diagnose, fix, push again, and restart from Step 8.
-3. **Only after all CI checks pass**: `gh pr merge $ARGUMENTS --squash --admin`
+3. **Only after all CI checks pass**: `gh pr merge $ARGUMENTS $MERGE_FLAGS`
 4. Confirm merge: `gh pr view $ARGUMENTS --json state -q .state`
 5. `ExitWorktree` with action `remove`
 
-**CRITICAL: Never merge before CI checks pass. The `--admin` flag bypasses branch protection rules (e.g., required reviews) but does NOT replace CI verification. Always wait for all checks to be green first.**
+**CRITICAL: Never merge before CI checks pass.** If `$MERGE_FLAGS` includes `--admin`, that bypasses branch protection rules (e.g., required reviews) but does NOT replace CI verification. Always wait for all checks to be green first.
 
 ---
 
@@ -146,7 +154,7 @@ Only after Steps 4, 5, and 6 are clean:
 
 ## Step 9: Post Review as PR Comment
 
-For PRs authored by someone other than `replghost`, do NOT fix, push, or merge. Instead:
+For PRs authored by someone other than `$AUTHOR`, do NOT fix, push, or merge. Instead:
 
 1. Complete Steps 1–4 (Setup, Code Review, identify issues, Review the Fixes is N/A) and Step 5 (Cross-File Consistency Checks).
 2. Post a single PR comment with `gh pr comment $ARGUMENTS --body "..."` containing:

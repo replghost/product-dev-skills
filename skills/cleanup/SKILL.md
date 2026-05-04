@@ -8,27 +8,19 @@ argument-hint: "[--dry-run] [--force]"
 
 Free disk space safely. **Never delete anything the user might still be working on.**
 
+## Configuration
+
+Read `$CLEANUP_PATHS` from `git config --get-all product-dev-skills.cleanup-paths`. If the command returns nothing, stop and ask the user to configure at least one path:
+
+```
+git config --global --add product-dev-skills.cleanup-paths "<path>"
+```
+
 ## Step 1: Survey Disk Usage
 
 1. `df -h /` to show current free space.
-2. Measure each cleanup-candidate area:
-   ```
-   du -sh ~/dev/github/paritytech/host-sdk/target 2>/dev/null
-   du -sh ~/dev/github/paritytech/host-sdk/.claude/worktrees 2>/dev/null
-   du -sh ~/.codex/worktrees 2>/dev/null
-   du -sh ~/dev/github/paritytech/host-sdk-worktrees 2>/dev/null
-   du -sh ~/Library/Developer/Xcode/DerivedData 2>/dev/null
-   du -sh ~/Library/Developer/CoreSimulator 2>/dev/null
-   du -sh ~/.cargo/registry 2>/dev/null
-   du -sh ~/.gradle/caches 2>/dev/null
-   ```
-3. Also scan the user's home directory for any other large directories:
-   ```
-   du -sh ~/dev/github/paritytech/host-sdk-* 2>/dev/null
-   du -sh ~/.claude/worktrees 2>/dev/null
-   ```
-4. List all registered worktrees: `git worktree list`
-5. Scan for unregistered worktree directories in `/private/tmp/host-sdk-*`
+2. For each entry in `$CLEANUP_PATHS`, run `du -sh <path> 2>/dev/null`.
+3. List all registered worktrees: `git worktree list`
 
 Present a summary table of areas and sizes.
 
@@ -90,9 +82,7 @@ WILL KEEP (in-use):
   ...
 
 BUILD CACHES (always safe to clear):
-  cargo target/ — <size>
-  Xcode DerivedData — <size>
-  gradle caches — <size>
+  <path from $CLEANUP_PATHS> — <size>
   ...
 
 Estimated space freed: <total>
@@ -108,14 +98,9 @@ Once confirmed:
 
 1. **Remove stale worktrees** — `rm -rf <path>` for each STALE worktree only
 2. **Prune git references** — `git worktree prune -v`
-3. **Clean build caches** (only if they exist and are > 500MB):
-   - `cargo clean` (in the main repo)
-   - `rm -rf ~/Library/Developer/Xcode/DerivedData/*`
-   - `rm -rf ~/.gradle/caches/*`
+3. **Clean build caches** from `$CLEANUP_PATHS` (only if they exist and are > 500MB). Use the appropriate command per cache (e.g. `cargo clean` for a cargo `target` directory, `rm -rf <dir>/*` for derived/cache directories).
 4. **Do NOT touch**:
-   - `~/.cargo/registry` or `~/.cargo/git` (these cache downloads, rebuilding is expensive)
-   - `~/Library/Caches` (system-managed)
-   - `~/Library/Developer/CoreSimulator` (may contain user data; suggest `xcrun simctl delete unavailable` instead)
+   - Any path not in `$CLEANUP_PATHS`
    - Any IN-USE worktree
 5. Show `df -h /` after cleanup to confirm space freed.
 

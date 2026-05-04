@@ -37,18 +37,30 @@ cp -r /path/to/product-dev-skills/skills/* .claude/skills/
 cp /path/to/product-dev-skills/commands/*.md .claude/commands/
 ```
 
-## Customization
+## Configuration
 
-These skills were built for a specific stack and workflow. They work out of the box, but you'll get better results by adapting them to your project. Here's where to look:
+The skills read project- and user-specific values from `git config` under the `product-dev-skills.*` namespace. The skills will prompt you to set anything they need on first use. To pre-configure:
 
-### Things you should customize
+The defaults below are the values that shipped with the skills before this change. Use them as-is to reproduce the original behavior, or replace each with what fits your project.
 
-1. **Author filter in work-issues**: The skill filters issues by `--author replghost`. Change this to your GitHub username so it only picks up issues you filed.
-2. **Auto-merge behavior in review-pr**: Uses `gh pr merge --squash --admin`. Remove `--admin` if you don't have admin access, or remove the merge step entirely if you want manual merge approval.
-3. **Local checks in work-issue and review-pr**: These run `cargo fmt`, `cargo clippy`, `cargo test`, `pnpm tsc`, and changeset checks. Replace with whatever your project uses (e.g., `npm test`, `go vet`, `pytest`).
-4. **PR review checklist in review-pr**: The checklist looks for UniFFI binding staleness, Swift/Android parity, and duplicated constants. Replace these with your own cross-cutting concerns (e.g., migration safety, API versioning, i18n).
-5. **Cleanup paths in cleanup**: The disk paths are specific to one machine's layout. Update the `du -sh` paths to match your own build directories and worktree locations.
-6. **Bastion persona**: `/bastion` embodies a demanding senior reviewer. You can create your own persona -- see below.
+```bash
+# Your GitHub username -- used to filter issues/PRs you authored.
+git config --global product-dev-skills.github-author <your-username>
+
+# Flags for `gh pr merge`. "--squash --admin" bypasses branch protection;
+# drop "--admin" if you don't have admin access or want manual approval.
+git config --global product-dev-skills.pr-merge-flags "--squash --admin"
+
+# Paths to scan during /cleanup. Repeat with --add for multiple paths.
+git config --global --add product-dev-skills.cleanup-paths "$HOME/dev/github/paritytech/host-sdk/target"
+git config --global --add product-dev-skills.cleanup-paths "$HOME/dev/github/paritytech/host-sdk/.claude/worktrees"
+git config --global --add product-dev-skills.cleanup-paths "$HOME/dev/github/paritytech/host-sdk-worktrees"
+git config --global --add product-dev-skills.cleanup-paths "$HOME/.codex/worktrees"
+git config --global --add product-dev-skills.cleanup-paths "$HOME/Library/Developer/Xcode/DerivedData"
+git config --global --add product-dev-skills.cleanup-paths "$HOME/.gradle/caches"
+```
+
+`/bastion` embodies a demanding senior reviewer. You can create your own persona -- see below.
 
 ### Creating Your Own Reviewer Persona
 
