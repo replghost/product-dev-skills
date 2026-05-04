@@ -9,6 +9,14 @@ disable-model-invocation: false
 
 Review, fix, and merge multiple PRs using the `/review-pr` pipeline, with smart scheduling based on file overlap.
 
+## Configuration
+
+Read `$MERGE_FLAGS` from `git config --get product-dev-skills.pr-merge-flags` (required). If unset, stop and tell the user to run:
+
+```
+git config --global product-dev-skills.pr-merge-flags "--squash"
+```
+
 ## Arguments
 
 Parse `$ARGUMENTS`:
