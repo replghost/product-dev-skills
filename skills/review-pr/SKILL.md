@@ -13,7 +13,7 @@ Read these from git config (`git config --get product-dev-skills.<key>`):
 - `$AUTHOR` from `github-author` (required) — author whose PRs get the full review-fix-merge pipeline
 - `$MERGE_FLAGS` from `pr-merge-flags` (required) — flags passed to `gh pr merge` (e.g. `--squash --admin` or `--squash`)
 - `$AUTO_MERGE` from `auto-merge` (optional, default `false`) — when `true`, the pipeline runs `gh pr merge` after CI is green. When `false` (the default), the pipeline stops after pushing fixes and verifying CI; it never runs `gh pr merge`. Read with `git config --get --type=bool product-dev-skills.auto-merge` and treat any value other than `true` (including unset) as `false`.
-- `$AUTO_FIX` from `auto-fix` (optional, default `true`) — when `true` (the default), the pipeline fixes findings, runs local checks, and pushes commits to the PR branch. When `false`, the pipeline stops after presenting findings; it never edits files, never pushes, and never merges. Read with `git config --get --type=bool product-dev-skills.auto-fix` and treat any value other than `false` (including unset) as `true`.
+- `$AUTO_FIX` from `auto-fix` (optional, default `false`) — when `true`, the pipeline pushes fixes without prompting. When `false` (the default), the pipeline still produces fixes locally and runs all checks, but stops before pushing to show the user the fix diff and ask whether to approve (push) or discard (revert). Read with `git config --get --type=bool product-dev-skills.auto-fix` and treat any value other than `true` (including unset) as `false`.
 
 If any required value is unset, stop and tell the user which `git config` command(s) to run.
 
@@ -69,7 +69,6 @@ Execute the full PR review-fix-merge pipeline for PR #$ARGUMENTS. Follow every s
 10. If a live rate-limit event appears during the session with `status=rejected` or with `status=allowed_warning` and utilization `>=95%`, stop launching any additional review work and switch the rest of the session to triage-only behavior immediately.
 11. **Apply the PR Review Checklist** (see below) to the findings.
 12. Present the **consolidated findings table** to the user. Include ALL severities.
-13. **If `$AUTO_FIX` is `false`**: stop here. Report the findings to the user, do not modify any files, do not push, and do not merge. `ExitWorktree` with action `remove` and skip Steps 3–8.
 
 ## Step 3: Fix ALL Issues
 
@@ -137,9 +136,10 @@ Run ALL relevant checks based on what files changed:
 
 Only after Steps 4, 5, and 6 are clean:
 
-1. `git add` the changed files
-2. `git commit` with a descriptive message
-3. `git push origin <worktree-branch>:<pr-branch> --force-with-lease`
+1. **If `$AUTO_FIX` is `false`**: show the user the fix diff (`git diff`, or a per-file summary if the diff is too large) and ask whether to **approve** (continue and push) or **discard** (revert all local edits and exit). On approve, continue to step 2. On discard, run `git reset --hard HEAD` to drop the local edits, `ExitWorktree` with action `remove`, and end the pipeline. In watcher-driven or non-interactive sessions where you cannot prompt the user, do not push: report the prepared fixes and exit without committing.
+2. `git add` the changed files
+3. `git commit` with a descriptive message
+4. `git push origin <worktree-branch>:<pr-branch> --force-with-lease`
 
 ## Step 8: Wait for CI, then Merge
 
@@ -154,7 +154,7 @@ Only after Steps 4, 5, and 6 are clean:
 
 **CRITICAL: Respect `$AUTO_MERGE=false`.** When auto-merge is disabled, never invoke `gh pr merge`, never enable GitHub auto-merge, and never bypass this gate. The user merges manually.
 
-**CRITICAL: Respect `$AUTO_FIX=false`.** When auto-fix is disabled, never edit files in the PR worktree, never commit, never push, and never invoke `gh pr merge`. The pipeline is review-only in that mode; the user applies the fixes themselves.
+**CRITICAL: Respect `$AUTO_FIX=false`.** When auto-fix is disabled, never push, commit, or merge without explicit user approval of the fix diff. The pipeline must present the diff and let the user choose to approve (push) or discard (revert). Do not assume approval; do not skip the prompt.
 
 ---
 
