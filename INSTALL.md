@@ -51,6 +51,18 @@ git config --global product-dev-skills.github-author <your-username>
 # drop "--admin" if you don't have admin access or want manual approval.
 git config --global product-dev-skills.pr-merge-flags "--squash --admin"
 
+# Enable automatic merging in /review-pr. Default is false: the pipeline
+# reviews, fixes, pushes, and waits for CI, but stops short of running
+# `gh pr merge` so you can merge manually. Set to true to opt in to
+# auto-merge after CI passes.
+git config --global product-dev-skills.auto-merge true
+
+# Auto-push fixes in /review-pr without prompting. Default is false:
+# the pipeline produces fixes locally and runs all local checks, then
+# shows you the diff and asks whether to approve (push) or discard
+# (revert). Set to true to skip the prompt and push fixes immediately.
+git config --global product-dev-skills.auto-fix true
+
 # Paths to scan during /cleanup. Repeat with --add for multiple paths.
 git config --global --add product-dev-skills.cleanup-paths "$HOME/dev/github/paritytech/host-sdk/target"
 git config --global --add product-dev-skills.cleanup-paths "$HOME/dev/github/paritytech/host-sdk/.claude/worktrees"
