@@ -42,6 +42,7 @@ See [INSTALL.md](INSTALL.md) for detailed setup and customization.
 | **review-pr** | Review, fix all issues, and merge a single PR |
 | **review-prs** | Multi-PR orchestrator with dependency analysis and parallel scheduling |
 | **cleanup** | Safely remove stale worktrees and build caches |
+| **slidedoc** | Write, build, convert, and review read-on-your-own decks using Duarte's method and William's house style |
 | **bastion** | Demanding senior engineer code review persona |
 | **wwbs** | "What Would Bastion Say?" -- alias for `/bastion` |
 | **testing-patterns** | Testing patterns reference (auto-loads during test work) |

@@ -19,6 +19,7 @@
         "./skills/review-pr",
         "./skills/review-prs",
         "./skills/cleanup",
+        "./skills/slidedoc",
         "./skills/testing-patterns"
       ]
     }
